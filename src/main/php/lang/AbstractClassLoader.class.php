@@ -116,26 +116,41 @@ abstract class AbstractClassLoader extends Object implements IClassLoader {
     // * Global namespace -> ClassName, alias as com\example\ClassName
     // 
     // Alias lang.** classes into global namespace
-    if (FALSE === ($p= strrpos($class, '.'))) {
+    $alias= null;
+    if (false === ($p= strrpos($class, '.'))) {
       $name= $class;
-    } else if (NULL !== $package) {
+    } else if (null !== $package) {
       $name= strtr($class, '.', '·');
-      class_alias($name, strtr($class, '.', '\\'));
-    } else if (($ns= strtr($class, '.', '\\')) && (class_exists($ns, false) || interface_exists($ns, false))) {
+      $alias= strtr($class, '.', '\\');
+    } else if (0 === strncmp($class, 'lang.', 5)) {
+      $name= strtr($class, '.', '\\');
+      $alias= substr($class, $p + 1);
+    } else if (($ns= strtr($class, '.', '\\')) && class_exists($ns, false) || interface_exists($ns, false)) {
       $name= $ns;
-    } else if (($cl= substr($class, $p+ 1)) && (class_exists($cl, false) || interface_exists($cl, false))) {
-      $name= $cl;
-      class_alias($name, strtr($class, '.', '\\'));
     } else {
+      $name= substr($class, $p+ 1);
+      $alias= strtr($class, '.', '\\');
+    }
+
+    try {
+      $reflect= new \ReflectionClass($name);
+      if ($reflect->getName() !== $name) {
+        unset(\xp::$cl[$class]);
+        raise('lang.ClassFormatException', sprintf(
+          'Class "%s" not declared in loaded file, "%s" found instead',
+          $class,
+          strtr($reflect->getName(), '\\', '.')
+        ));
+      }
+    } catch (\ReflectionException $e) {
       unset(\xp::$cl[$class]);
       raise('lang.ClassFormatException', 'Class "'.$class.'" not declared in loaded file');
     }
 
     \xp::$cn[$name]= $class;
-
-    if (0 === strncmp($class, 'lang.', 5)) {
-      class_alias($name, substr($class, $p + 1));
-      \xp::$cn[substr($class, $p + 1)]= $class;
+    if ($alias) {
+      class_alias($name, $alias);
+      \xp::$cn[$alias]= $class;
     }
 
     method_exists($name, '__static') && \xp::$cli[]= array($name, '__static');
