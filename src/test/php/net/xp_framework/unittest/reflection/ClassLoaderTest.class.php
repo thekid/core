@@ -244,6 +244,15 @@ class ClassLoaderTest extends TestCase {
   }
 
   /**
+   * Loads a class with a class name / file name case mismatch
+   *
+   */
+  #[@test, @expect(class= 'lang.ClassFormatException', withMessage= '/".+CaseMismAtch" found instead/')]
+  public function loadClassWithCaseMismatch() {
+    \lang\XPClass::forName('net.xp_framework.unittest.reflection.classes.broken.CaseMismatch');
+  }
+
+  /**
    * Test
    *
    */
