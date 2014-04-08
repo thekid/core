@@ -511,6 +511,11 @@ function uses() {
       }
       call_user_func([$class, '__import'], $scope);
     }
+
+    // Create short class name alias
+    $short= substr($class, strrpos($class, '\\') + 1);
+    class_alias($class, $short);
+    xp::$cn[$short]= $str;
   }
 }
 // }}}
