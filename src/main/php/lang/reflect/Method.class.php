@@ -35,9 +35,8 @@ class Method extends Routine {
   /** @return var[] */
   protected function generic() {
     if (!isset($this->generic)) {
-      $details= \lang\XPClass::detailsForMethod($this->_reflect->getDeclaringClass()->getName(), $this->_reflect->getName());
-      if (isset($details[DETAIL_ANNOTATIONS]['generic']['self'])) {
-        $this->generic= [explode(',', $details[DETAIL_ANNOTATIONS]['generic']['self']), null];
+      if (preg_match('/@generic([^\n]+)/', $this->_reflect->getDocComment(), $matches)) {
+        $this->generic= [explode(',', trim($matches[1], '<> ')), null];
       } else {
         $this->generic= [null, null];
       }

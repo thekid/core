@@ -43,6 +43,7 @@ class NSListOf extends \lang\Object {
   /**
    * Generic creator
    *
+   * @generic <L>
    * @param  L[] $args
    * @return self<L>
    */

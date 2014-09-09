@@ -8,6 +8,7 @@ class GenericMethodFixture extends \lang\Object {
   /**
    * Generic getter
    *
+   * @generic <T>
    * @param  var $arg
    * @return T
    */
@@ -19,6 +20,7 @@ class GenericMethodFixture extends \lang\Object {
   /**
    * Generic creator
    *
+   * @generic <T>
    * @param  T[] $arg
    * @return util.collections.IList<T>
    */
@@ -32,6 +34,7 @@ class GenericMethodFixture extends \lang\Object {
   /**
    * Creates a new hashtable
    *
+   * @generic <K, V>
    * @return util.collections.HashTable<K, V>
    */
   #[@generic(self= 'K, V', return= 'util.collections.HashTable<K, V>')]
