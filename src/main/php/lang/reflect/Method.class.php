@@ -14,7 +14,6 @@ use lang\IllegalAccessException;
  */
 class Method extends Routine {
   public $invoke0;
-  protected $generic;
 
   /**
    * Constructor
@@ -26,22 +25,16 @@ class Method extends Routine {
    */
   public function __construct($class, $reflect, $generic= null, $invoke0= null) {
     parent::__construct($class, $reflect);
-    $this->generic= $generic;
+    if (null === $generic) {
+      if (preg_match('/@generic([^\n]+)/', $reflect->getDocComment(), $c)) {
+        $this->_generic= [explode(',', trim($c[1], '<> ')), null];
+      }
+    } else {
+      $this->_generic= $generic;
+    }
     $this->invoke0= $invoke0 ?: function($obj, $args) {
       return $this->_reflect->invokeArgs($obj, $args);
     };
-  }
-
-  /** @return var[] */
-  protected function generic() {
-    if (!isset($this->generic)) {
-      if (preg_match('/@generic([^\n]+)/', $this->_reflect->getDocComment(), $matches)) {
-        $this->generic= [explode(',', trim($matches[1], '<> ')), null];
-      } else {
-        $this->generic= [null, null];
-      }
-    }
-    return $this->generic;
   }
 
   /**
@@ -50,7 +43,7 @@ class Method extends Routine {
    * @return  bool
    */
   public function isGenericDefinition() {
-    return (bool)$this->generic()[0];
+    return (bool)$this->_generic[0];
   }
 
   /**
@@ -60,7 +53,7 @@ class Method extends Routine {
    * @throws  lang.IllegalStateException if this method is not a generic definition
    */
   public function genericComponents() {
-    if (!($c= $this->generic()[0])) {
+    if (!($c= $this->_generic[0])) {
       throw new IllegalStateException('Method '.$this->getName().' is not a generic definition');
     }
     return $c;
@@ -72,7 +65,7 @@ class Method extends Routine {
    * @return  bool
    */
   public function isGeneric() {
-    return (bool)$this->generic()[1];
+    return (bool)$this->_generic[1];
   }
 
   /**
@@ -82,7 +75,7 @@ class Method extends Routine {
    * @throws  lang.IllegalStateException if this method is not generic
    */
   public function genericArguments() {
-    if (!($a= $this->generic()[1])) {
+    if (!($a= $this->_generic[1])) {
       throw new IllegalStateException('Method '.$this->getName().' is not generic');
     }
     return $a;

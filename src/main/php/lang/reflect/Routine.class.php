@@ -15,29 +15,22 @@
  * @see   http://de3.php.net/manual/en/reflectionmethod.setaccessible.php
  */
 class Routine extends \lang\Object {
-  protected
-    $accessible = false,
-    $_class     = null;
-
-  public 
-    $_reflect   = null;
+  protected $accessible = false;
+  protected $_generic= [null, null];
+  protected $_class;
+  public $_reflect;
 
   /**
    * Constructor
    *
-   * @param   string class
-   * @param   php.ReflectionMethod reflect
+   * @param   string $class
+   * @param   php.ReflectionMethod $reflect
    */    
   public function __construct($class, $reflect) {
     $this->_class= $class;
     $this->_reflect= $reflect;
   }
 
-  /** @return var[] */
-  protected function generic() {
-    return [null, null];
-  }
-  
   /**
    * Get routine's name.
    *
@@ -91,7 +84,7 @@ class Routine extends \lang\Object {
    */
   public function getParameters() {
     $r= [];
-    $g= sizeof($this->generic()[0]);
+    $g= sizeof($this->_generic[0]);
     $c= $this->_reflect->getDeclaringClass()->getName();
     foreach ($this->_reflect->getParameters() as $offset => $param) {
       $offset >= $g && $r[]= new Parameter($param, [$c, $this->_reflect->getName(), $offset - $g]);
@@ -107,7 +100,7 @@ class Routine extends \lang\Object {
    */
   public function getParameter($offset) {
     $list= $this->_reflect->getParameters();
-    $g= sizeof($this->generic()[0]);
+    $g= sizeof($this->_generic[0]);
     $offset+= $g;
     return isset($list[$offset]) 
       ? new Parameter($list[$offset], [$this->_reflect->getDeclaringClass()->getName(), $this->_reflect->getName(), $offset - $g])
@@ -122,7 +115,7 @@ class Routine extends \lang\Object {
    * @return  int
    */
   public function numParameters() {
-    return $this->_reflect->getNumberOfParameters() - sizeof($this->generic()[0]);
+    return $this->_reflect->getNumberOfParameters() - sizeof($this->_generic[0]);
   }
 
   /**
@@ -313,7 +306,7 @@ class Routine extends \lang\Object {
     } else {
       $throws= '';
     }
-    $generic= $this->generic()[0];
+    $generic= $this->_generic[0];
     return sprintf(
       '%s %s %s%s(%s)%s',
       Modifiers::stringOf($this->getModifiers()),
