@@ -7,7 +7,7 @@ trait __xp {
   public static function __callStatic($name, $args) {
     if (false !== ($p= strpos($name, '<'))) {
       $self= get_called_class();
-      return (new \lang\reflect\Method($self, new \ReflectionMethod($self, substr($name, 0, $p))))
+      return (new \lang\reflect\Method($self, new \ReflectionMethod($self, substr($name, 0, $p).'‹›')))
         ->newGenericMethod(\lang\Type::forNames(substr($name, $p+ 1, -1)))
         ->invoke0
         ->__invoke(null, (array)$args)
@@ -33,7 +33,7 @@ trait __xp {
   // {{{ invocation handler
   public function __call($name, $args) {
     if (false !== ($p= strpos($name, '<'))) {
-      return (new \lang\reflect\Method(get_class($this), new \ReflectionMethod($this, substr($name, 0, $p))))
+      return (new \lang\reflect\Method(get_class($this), new \ReflectionMethod($this, substr($name, 0, $p).'‹›')))
         ->newGenericMethod(\lang\Type::forNames(substr($name, $p+ 1, -1)))
         ->invoke0
         ->__invoke($this, (array)$args)

@@ -17,7 +17,8 @@
 class Routine extends \lang\Object {
   protected
     $accessible = false,
-    $_class     = null;
+    $_class     = null,
+    $_generic   = [null, null];
 
   public 
     $_reflect   = null;
@@ -33,18 +34,13 @@ class Routine extends \lang\Object {
     $this->_reflect= $reflect;
   }
 
-  /** @return var[] */
-  protected function generic() {
-    return [null, null];
-  }
-  
   /**
    * Get routine's name.
    *
    * @return  string
    */
   public function getName() {
-    return $this->_reflect->getName();
+    return rtrim($this->_reflect->getName(), '‹›');
   }
   
   /**
@@ -91,7 +87,7 @@ class Routine extends \lang\Object {
    */
   public function getParameters() {
     $r= [];
-    $g= sizeof($this->generic()[0]);
+    $g= sizeof($this->_generic[0]);
     $c= $this->_reflect->getDeclaringClass()->getName();
     foreach ($this->_reflect->getParameters() as $offset => $param) {
       $offset >= $g && $r[]= new Parameter($param, [$c, $this->_reflect->getName(), $offset - $g]);
@@ -107,7 +103,7 @@ class Routine extends \lang\Object {
    */
   public function getParameter($offset) {
     $list= $this->_reflect->getParameters();
-    $g= sizeof($this->generic()[0]);
+    $g= sizeof($this->_generic[0]);
     $offset+= $g;
     return isset($list[$offset]) 
       ? new Parameter($list[$offset], [$this->_reflect->getDeclaringClass()->getName(), $this->_reflect->getName(), $offset - $g])
@@ -122,7 +118,7 @@ class Routine extends \lang\Object {
    * @return  int
    */
   public function numParameters() {
-    return $this->_reflect->getNumberOfParameters() - sizeof($this->generic()[0]);
+    return $this->_reflect->getNumberOfParameters() - sizeof($this->_generic[0]);
   }
 
   /**
@@ -313,13 +309,12 @@ class Routine extends \lang\Object {
     } else {
       $throws= '';
     }
-    $generic= $this->generic()[0];
     return sprintf(
       '%s %s %s%s(%s)%s',
       Modifiers::stringOf($this->getModifiers()),
       $this->getReturnTypeName(),
       $this->getName(),
-      $generic ? '<'.implode(',', $generic).'>' : '',
+      $this->_generic[0] ? '<'.implode(',', $this->_generic[0]).'>' : '',
       substr($signature, 2),
       $throws
     );

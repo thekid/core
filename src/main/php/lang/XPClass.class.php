@@ -174,6 +174,20 @@ class XPClass extends Type {
   }
 
   /**
+   * Gets method by a given name
+   *
+   * @param  string $name
+   * @return string or NULL
+   */
+  protected function methodNamed($name) {
+    if (0 === strncmp('__', $name, 2)) return null;
+    if ($this->_reflect->hasMethod($name)) return $name;
+    $generic= $name.'‹›';
+    if ($this->_reflect->hasMethod($generic)) return $generic;
+    return null;
+  }
+
+  /**
    * Gets a method by a specified name.
    *
    * @param   string name
@@ -182,28 +196,25 @@ class XPClass extends Type {
    * @throws  lang.ElementNotFoundException
    */
   public function getMethod($name) {
-    if ($this->hasMethod($name)) {
-      return new Method($this->_class, $this->_reflect->getMethod($name));
+    if ($m= $this->methodNamed($name)) {
+      return new Method($this->_class, $this->_reflect->getMethod($m));
     }
     raise('lang.ElementNotFoundException', 'No such method "'.$name.'" in class '.$this->name);
   }
   
   /**
-   * Checks whether this class has a method named "$method" or not.
+   * Checks whether this class has a method named "$name" or not.
    *
    * Note
    * ====
    * Since in PHP, methods are case-insensitive, calling hasMethod('toString') 
    * will provide the same result as hasMethod('tostring')
    *
-   * @param   string method the method's name
+   * @param   string name the method's name
    * @return  bool TRUE if method exists
    */
-  public function hasMethod($method) {
-    return ((0 === strncmp('__', $method, 2))
-      ? false
-      : $this->_reflect->hasMethod($method)
-    );
+  public function hasMethod($name) {
+    return null !== $this->methodNamed($name);
   }
   
   /**

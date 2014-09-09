@@ -12,7 +12,7 @@ class GenericMethodFixture extends \lang\Object {
    * @return T
    */
   #[@generic(self= 'T', return= 'T')]
-  public function get($T, $arg= null) {
+  public function get‹›($T, $arg= null) {
     return null === $arg ? $T->default : $T->cast($arg);
   }
 
@@ -23,7 +23,7 @@ class GenericMethodFixture extends \lang\Object {
    * @return util.collections.IList<T>
    */
   #[@generic(self= 'T', return= 'util.collections.IList<T>', params= 'T[]')]
-  public static function asList($T, $arg) {
+  public static function asList‹›($T, $arg) {
     $list= create("new util.collections.Vector<$T>");
     $list->addAll($arg);
     return $list;
@@ -35,7 +35,7 @@ class GenericMethodFixture extends \lang\Object {
    * @return util.collections.HashTable<K, V>
    */
   #[@generic(self= 'K, V', return= 'util.collections.HashTable<K, V>')]
-  public static function newHash($K, $V) {
+  public static function newHash‹›($K, $V) {
     return \lang\XPClass::forName('util.collections.HashTable')->newGenericType([$K, $V])->newInstance();
   }
 }
