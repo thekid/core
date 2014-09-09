@@ -26,8 +26,10 @@ class Method extends Routine {
   public function __construct($class, $reflect, $generic= null, $invoke0= null) {
     parent::__construct($class, $reflect);
     if (null === $generic) {
-      if (preg_match('/@generic([^\n]+)/', $reflect->getDocComment(), $c)) {
-        $this->_generic= [explode(',', trim($c[1], '<> ')), null];
+      $comment= $reflect->getDocComment();
+      if (false !== ($p= strpos($comment, '@generic '))) {
+        $p+= 9;
+        $this->_generic= [explode(',', trim(substr($comment, $p, strpos($comment, "\n", $p)- $p), '<> ')), null];
       }
     } else {
       $this->_generic= $generic;
