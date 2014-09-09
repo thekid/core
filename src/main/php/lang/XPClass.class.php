@@ -174,20 +174,6 @@ class XPClass extends Type {
   }
 
   /**
-   * Gets method by a given name
-   *
-   * @param  string $name
-   * @return string or NULL
-   */
-  protected function methodNamed($name) {
-    if (0 === strncmp('__', $name, 2)) return null;
-    if ($this->_reflect->hasMethod($name)) return $name;
-    $generic= $name.'‹›';
-    if ($this->_reflect->hasMethod($generic)) return $generic;
-    return null;
-  }
-
-  /**
    * Gets a method by a specified name.
    *
    * @param   string name
@@ -196,8 +182,9 @@ class XPClass extends Type {
    * @throws  lang.ElementNotFoundException
    */
   public function getMethod($name) {
-    if ($m= $this->methodNamed($name)) {
-      return new Method($this->_class, $this->_reflect->getMethod($m));
+    if (0 !== strncmp('__', $name, 2)) {;
+      if ($this->_reflect->hasMethod($name)) return new Method($this->_class, $this->_reflect->getMethod($name));
+      if ($this->_reflect->hasMethod($g= $name.'‹›')) return new Method($this->_class, $this->_reflect->getMethod($g));
     }
     raise('lang.ElementNotFoundException', 'No such method "'.$name.'" in class '.$this->name);
   }
@@ -214,7 +201,10 @@ class XPClass extends Type {
    * @return  bool TRUE if method exists
    */
   public function hasMethod($name) {
-    return null !== $this->methodNamed($name);
+    return 0 !== strncmp('__', $name, 2) && (
+      $this->_reflect->hasMethod($name) ||
+      $this->_reflect->hasMethod($name.'‹›')
+    );
   }
   
   /**
