@@ -46,7 +46,7 @@ class NSListOf extends \lang\Object {
    * @param  L[] $args
    * @return self<L>
    */
-  #[@generic(self= 'L', return= 'self<L>', params= 'L[]')]
+  #[@generic(return= 'self<L>', params= 'L[]')]
   public static function of‹›($L, $args) {
     $list= create("new util.xp_framewor.unittest.core.generics.NSListOf<$L>");
     $list->elements= $arg;
