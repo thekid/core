@@ -123,4 +123,10 @@ class ScannerTest extends \unittest\TestCase {
   public function raises_exceptions_for_unknown_scan_character() {
     new Scanner('%Q');
   }
+
+  #[@test]
+  public function skip_assignment() {
+    $scanner= new Scanner('%d %*s %s');
+    $this->assertEquals(['1 is green', '1', 'green'], $scanner->match('1 is green')->group(0));
+  }
 }
