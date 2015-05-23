@@ -129,4 +129,13 @@ class ScannerTest extends \unittest\TestCase {
     $scanner= new Scanner('%d %*s %s');
     $this->assertEquals(['1 is green', '1', 'green'], $scanner->match('1 is green')->group(0));
   }
+
+  #[@test]
+  public function named() {
+    $scanner= new Scanner('%<key>s = %<value>s');
+    $this->assertEquals(
+      ['color = green', 'color', 'key' => 'color', 'green', 'value' => 'green'],
+      $scanner->match('color = green')->group(0)
+    );
+  }
 }

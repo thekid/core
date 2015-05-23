@@ -345,4 +345,13 @@ class PatternTest extends \unittest\TestCase {
   public function stringCastWithFlags() {
     $this->assertEquals('/end$/iU', (string)new Pattern('end$', Pattern::CASE_INSENSITIVE | Pattern::UNGREEDY));
   }
+
+  #[@test]
+  public function named() {
+    $pattern= new Pattern('(?P<key>\w+) = (?P<value>\w+)');
+    $this->assertEquals(
+      ['color = green', 'color', 'key' => 'color', 'green', 'value' => 'green'],
+      $pattern->match('color = green')->group(0)
+    );
+  }
 }

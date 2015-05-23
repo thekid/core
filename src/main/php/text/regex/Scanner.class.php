@@ -4,7 +4,7 @@ use lang\IllegalArgumentException;
 use lang\FormatException;
 
 /**
- * Scanner
+ * Scans strings according to format specifiers
  *
  * @see      php://sscanf
  * @see      http://www.kernel.org/doc/man-pages/online/pages/man3/scanf.3.html 
@@ -33,14 +33,23 @@ class Scanner extends \lang\Object implements Matcher {
           $assign= '0';
           $i++;
         } else {
-          $assign= '1';
+          $assign= 'I';
+        }
+
+        if ('<' === $pattern{$i}) {
+          $p= strcspn($pattern, '>', $i);
+          $key= substr($pattern, $i + 1, $p - 1);
+          $i+= $p + 1;
+          $assign && $assign= 'N';
+        } else {
+          $key= sizeof($this->pattern);
         }
 
         switch ($pattern{$i}) {
-          case 'd': $this->pattern[]= $assign.'1+-0123456789'; break;
-          case 'x': $this->pattern[]= $assign.'1x0123456789abcdefABCDEF'; break;
-          case 'f': $this->pattern[]= $assign.'1+-0123456789.'; break;
-          case 's': $this->pattern[]= $assign."0\1\2\3\4\5\6\7\10\11\12\13\14\15\16\17\20\21\22\23\24\25\26\27\30\31\32\33\34\35\36\37\40"; break;
+          case 'd': $this->pattern[$key]= $assign.'1+-0123456789'; break;
+          case 'x': $this->pattern[$key]= $assign.'1x0123456789abcdefABCDEF'; break;
+          case 'f': $this->pattern[$key]= $assign.'1+-0123456789.'; break;
+          case 's': $this->pattern[$key]= $assign."0\1\2\3\4\5\6\7\10\11\12\13\14\15\16\17\20\21\22\23\24\25\26\27\30\31\32\33\34\35\36\37\40"; break;
           case '[': {   // [^a-z]: everything except a-z, [a-z]: only a-z, []01]: only "[", "0" and "1"
             if ($i+ 1 >= $s) {
               throw new FormatException('Unmatched "]" in format string');
@@ -62,7 +71,7 @@ class Scanner extends \lang\Object implements Matcher {
                 $match.= $seq{$j};
               }
             }
-            $this->pattern[]= $match;
+            $this->pattern[$key]= $match;
             $i+= $t+ 1;
             break;
           }
@@ -109,7 +118,7 @@ class Scanner extends \lang\Object implements Matcher {
   public function match($input) {
     $o= 0;
     $matches= [0 => ''];
-    foreach ($this->pattern as $match) {
+    foreach ($this->pattern as $key => $match) {
       switch ($match{1}) {
         case '0': $l= strcspn($input, substr($match, 2), $o); break;
         case '1': $l= strspn($input, substr($match, 2), $o); break;
@@ -118,7 +127,10 @@ class Scanner extends \lang\Object implements Matcher {
       if (0 === $l) break;
       $matched= substr($input, $o, $l);
       $matches[0].= $matched;
-      $match{0} && $matches[]= $matched;
+      switch ($match{0}) {
+        case 'I': $matches[]= $matched; break;
+        case 'N': $matches[$key]= $matches[]= $matched; break;
+      }
       $o+= $l;
     }
     $m= sizeof($matches)- 1;
