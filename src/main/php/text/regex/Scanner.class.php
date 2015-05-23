@@ -6,8 +6,10 @@ use lang\FormatException;
 /**
  * Scans strings according to format specifiers
  *
- * @see      php://sscanf
- * @see      http://www.kernel.org/doc/man-pages/online/pages/man3/scanf.3.html 
+ * @see   php://sscanf
+ * @see   http://en.wikipedia.org/wiki/Scanf_format_string
+ * @see   http://man7.org/linux/man-pages/man3/scanf.3.html
+ * @test  xp://net.xp_framework.unittest.text.ScannerTest
  */
 class Scanner extends \lang\Object implements Matcher {
   protected $pattern= [];
