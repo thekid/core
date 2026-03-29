@@ -36,7 +36,7 @@ class Blob implements IteratorAggregate, Value {
       throw new IllegalArgumentException(sprintf(
         'Expected iterable|string|util.Bytes|io.streams.InputStream, have %s',
         typeof($parts)
-      );
+      ));
     }
 
     $this->parts= $parts;
