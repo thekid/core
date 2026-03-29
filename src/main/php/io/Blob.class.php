@@ -58,14 +58,24 @@ class Blob implements IteratorAggregate, Value {
 
   /** @return iterable */
   public function slices(int $size= 8192) {
-    foreach ($this->iterator as $slice) {
-      $offset= 0;
+    while ($this->iterator->valid()) {
+      $slice= $this->iterator->current();
       $length= strlen($slice);
+      $offset= 0;
+
+      while ($length < $size) {
+        $this->iterator->next();
+        $slice.= $this->iterator->current();
+        if (!$this->iterator->valid()) break;
+      }
+
       while ($length - $offset > $size) {
         yield substr($slice, $offset, $size);
         $offset+= $size;
       }
+
       yield $offset ? substr($slice, $offset) : $slice;
+      $this->iterator->next();
     }
   }
 

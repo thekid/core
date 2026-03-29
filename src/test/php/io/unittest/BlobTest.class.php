@@ -61,4 +61,9 @@ class BlobTest {
   public function slices($size, $expected) {
     Assert::equals($expected, iterator_to_array((new Blob('Test'))->slices($size)));
   }
+
+  #[Test]
+  public function fill_slice() {
+    Assert::equals(['Test'], iterator_to_array((new Blob(['Te', 'st']))->slices()));
+  }
 }
