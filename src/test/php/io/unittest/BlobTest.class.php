@@ -56,4 +56,9 @@ class BlobTest {
   public function string_cast($fixture, $expected) {
     Assert::equals(implode('', $expected), (string)$fixture);
   }
+
+  #[Test, Values([[1, ['T', 'e', 's', 't']], [2, ['Te', 'st']], [3, ['Tes', 't']], [4, ['Test']]])]
+  public function slices($size, $expected) {
+    Assert::equals($expected, iterator_to_array((new Blob('Test'))->slices($size)));
+  }
 }

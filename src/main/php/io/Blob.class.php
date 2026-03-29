@@ -56,6 +56,19 @@ class Blob implements IteratorAggregate, Value {
     ;
   }
 
+  /** @return iterable */
+  public function slices(int $size= 8192) {
+    foreach ($this->iterator as $slice) {
+      $offset= 0;
+      $length= strlen($slice);
+      while ($length - $offset > $size) {
+        yield substr($slice, $offset, $size);
+        $offset+= $size;
+      }
+      yield $offset ? substr($slice, $offset) : $slice;
+    }
+  }
+
   /** @return string */
   public function hashCode() { return 'B'.Objects::hashOf($this->parts); }
 
