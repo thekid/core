@@ -2,8 +2,8 @@
 
 use ArrayObject;
 use io\Blob;
-use io\streams\MemoryInputStream;
-use lang\{IllegalArgumentException, Error};
+use io\streams\{MemoryInputStream, InputStream};
+use lang\{IllegalArgumentException, IllegalStateException};
 use test\{Assert, Expect, Test, Values};
 use util\Bytes;
 
@@ -68,10 +68,23 @@ class BlobTest {
   }
 
   #[Test]
-  public function cannot_fetch_slices_twice() {
+  public function fetch_slice_twice() {
     $fixture= new Blob('Test');
+
+    Assert::equals(['Test'], iterator_to_array($fixture->slices()));
+    Assert::equals(['Test'], iterator_to_array($fixture->slices()));
+  }
+
+  #[Test]
+  public function cannot_fetch_slices_twice_from_non_seekable() {
+    $fixture= new Blob(new class() implements InputStream {
+      private $input= ['Test'];
+      public function available() { return strlen(current($this->input)); }
+      public function read($limit= 8192) { return array_shift($this->input); }
+      public function close() { $this->input= []; }
+    });
     iterator_to_array($fixture->slices());
 
-    Assert::throws(Error::class, fn() => iterator_to_array($fixture->slices()));
+    Assert::throws(IllegalStateException::class, fn() => iterator_to_array($fixture->slices()));
   }
 }

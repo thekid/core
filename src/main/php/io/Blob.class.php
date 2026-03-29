@@ -1,8 +1,8 @@
 <?php namespace io;
 
 use IteratorAggregate, Traversable;
-use io\streams\{InputStream, IterableInputStream};
-use lang\{Value, IllegalArgumentException};
+use io\streams\{InputStream, IterableInputStream, Seekable};
+use lang\{Value, IllegalArgumentException, IllegalStateException};
 use util\{Bytes, Objects};
 
 /** @test io.unittest.BlobTest */
@@ -18,16 +18,28 @@ class Blob implements IteratorAggregate, Value {
    */
   public function __construct($parts= []) {
     if ($parts instanceof InputStream) {
-      $this->iterator= (function() {
-        while ($this->parts->available()) {
-          yield $this->parts->read();
-        }
-        $this->parts->close();
-      })();
+      $this->iterator= function() {
+        static $started= false;
+
+        return (function() use(&$started) {
+          if ($started) {
+            if ($this->parts instanceof Seekable) {
+              $this->parts->seek(0);
+            } else {
+              throw new IllegalStateException('Cannot seek '.Objects::stringOf($this->parts));
+            }
+          }
+
+          $started= true;
+          while ($this->parts->available()) {
+            yield $this->parts->read();
+          }
+        })();
+      };
     } else if ($parts instanceof Bytes || is_string($parts)) {
-      $this->iterator= (function() { yield (string)$this->parts; })();
+      $this->iterator= fn() => (function() { yield (string)$this->parts; })();
     } else if (is_iterable($parts)) {
-      $this->iterator= (function() {
+      $this->iterator= fn() => (function() {
         foreach ($this->parts as $part) {
           yield (string)$part;
         }
@@ -43,31 +55,37 @@ class Blob implements IteratorAggregate, Value {
   }
 
   /** @return iterable */
-  public function getIterator(): Traversable { return $this->iterator; }
+  public function getIterator(): Traversable { return ($this->iterator)(); }
 
   /** @return util.Bytes */
-  public function bytes() { return new Bytes(...$this->iterator); }
+  public function bytes() { 
+    return $this->parts instanceof Bytes
+      ? $this->parts
+      : new Bytes(...($this->iterator)())
+    ;
+  }
 
   /** @return io.streams.InputStream */
   public function stream() {
     return $this->parts instanceof InputStream
       ? $this->parts
-      : new IterableInputStream($this->iterator)
+      : new IterableInputStream(($this->iterator)())
     ;
   }
 
   /** @return iterable */
   public function slices(int $size= 8192) {
-    $this->iterator->rewind();
-    while ($this->iterator->valid()) {
-      $slice= $this->iterator->current();
+    $it= ($this->iterator)();
+    $it->rewind();
+    while ($it->valid()) {
+      $slice= $it->current();
       $length= strlen($slice);
       $offset= 0;
 
       while ($length < $size) {
-        $this->iterator->next();
-        $slice.= $this->iterator->current();
-        if (!$this->iterator->valid()) break;
+        $it->next();
+        $slice.= $it->current();
+        if (!$it->valid()) break;
       }
 
       while ($length - $offset > $size) {
@@ -76,7 +94,7 @@ class Blob implements IteratorAggregate, Value {
       }
 
       yield $offset ? substr($slice, $offset) : $slice;
-      $this->iterator->next();
+      $it->next();
     }
   }
 
@@ -102,7 +120,7 @@ class Blob implements IteratorAggregate, Value {
   /** @return string */
   public function __toString() {
     $bytes= '';
-    foreach ($this->iterator as $chunk) {
+    foreach (($this->iterator)() as $chunk) {
       $bytes.= $chunk;
     }
     return $bytes;
