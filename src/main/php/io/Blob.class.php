@@ -68,6 +68,28 @@ class Blob implements IteratorAggregate, Value {
     ;
   }
 
+  /** Creates a new blob with the given filter applied */
+  public function encoded(string $filter): self {
+    $it= function() use($filter) {
+      $fd= Streams::readableFd($this->stream());
+      if (!stream_filter_append($fd, $filter, STREAM_FILTER_READ)) {
+        throw new OperationNotSupportedException('Cannot stream '.$filter);
+      }
+
+      do {
+        yield fread($fd, 8192);
+      } while (!feof($fd));
+
+      fclose($fd);
+    };
+
+    $meta= $this->meta;
+    $meta['encoding']??= [];
+    $meta['encoding'][]= $filter;
+
+    return new self($it(), $meta);
+  }
+
   /** @return iterable */
   public function slices(int $size= 8192) {
     $it= ($this->iterator)();

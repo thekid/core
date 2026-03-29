@@ -4,6 +4,7 @@ use ArrayObject;
 use io\streams\{MemoryInputStream, InputStream};
 use io\{Blob, OperationNotSupportedException};
 use lang\IllegalArgumentException;
+use test\verify\Runtime;
 use test\{Assert, Expect, Test, Values};
 use util\Bytes;
 
@@ -97,5 +98,14 @@ class BlobTest {
     iterator_to_array($fixture->slices());
 
     Assert::throws(OperationNotSupportedException::class, fn() => iterator_to_array($fixture->slices()));
+  }
+
+  /** @see https://bugs.php.net/bug.php?id=77069 */
+  #[Test, Runtime(php: '>=7.4.14')]
+  public function base64_encoded() {
+    $base64= (new Blob('Test'))->encoded('convert.base64-encode');
+
+    Assert::equals(['convert.base64-encode'], $base64->meta['encoding']);
+    Assert::equals('VGVzdA==', (string)$base64);
   }
 }
