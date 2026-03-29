@@ -1,9 +1,9 @@
 <?php namespace io\unittest;
 
 use ArrayObject;
-use io\Blob;
 use io\streams\{MemoryInputStream, InputStream};
-use lang\{IllegalArgumentException, IllegalStateException};
+use io\{Blob, OperationNotSupportedException};
+use lang\IllegalArgumentException;
 use test\{Assert, Expect, Test, Values};
 use util\Bytes;
 
@@ -85,6 +85,6 @@ class BlobTest {
     });
     iterator_to_array($fixture->slices());
 
-    Assert::throws(IllegalStateException::class, fn() => iterator_to_array($fixture->slices()));
+    Assert::throws(OperationNotSupportedException::class, fn() => iterator_to_array($fixture->slices()));
   }
 }

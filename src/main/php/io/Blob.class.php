@@ -1,8 +1,8 @@
 <?php namespace io;
 
 use IteratorAggregate, Traversable;
-use io\streams\{InputStream, IterableInputStream, Seekable};
-use lang\{Value, IllegalArgumentException, IllegalStateException};
+use io\streams\{InputStream, IterableInputStream, Streams};
+use lang\{Value, IllegalArgumentException};
 use util\{Bytes, Objects};
 
 /** @test io.unittest.BlobTest */
@@ -22,15 +22,7 @@ class Blob implements IteratorAggregate, Value {
         static $started= false;
 
         return (function() use(&$started) {
-          if ($started) {
-            if ($this->parts instanceof Seekable) {
-              $this->parts->seek(0);
-            } else {
-              throw new IllegalStateException('Cannot seek '.Objects::stringOf($this->parts));
-            }
-          }
-
-          $started= true;
+          $started ? Streams::seek($this->parts, 0) : $started= true;
           while ($this->parts->available()) {
             yield $this->parts->read();
           }
