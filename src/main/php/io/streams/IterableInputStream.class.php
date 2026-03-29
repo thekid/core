@@ -19,6 +19,7 @@ class IterableInputStream implements InputStream {
     } else {
       throw new IllegalArgumentException('Expected iterable|function(): Iterator, have '.typeof($input));
     }
+    $this->iterator->rewind();
   }
 
   /** @return int */

@@ -58,6 +58,7 @@ class Blob implements IteratorAggregate, Value {
 
   /** @return iterable */
   public function slices(int $size= 8192) {
+    $this->iterator->rewind();
     while ($this->iterator->valid()) {
       $slice= $this->iterator->current();
       $length= strlen($slice);

@@ -3,7 +3,7 @@
 use ArrayObject;
 use io\Blob;
 use io\streams\MemoryInputStream;
-use lang\IllegalArgumentException;
+use lang\{IllegalArgumentException, Error};
 use test\{Assert, Expect, Test, Values};
 use util\Bytes;
 
@@ -65,5 +65,13 @@ class BlobTest {
   #[Test]
   public function fill_slice() {
     Assert::equals(['Test'], iterator_to_array((new Blob(['Te', 'st']))->slices()));
+  }
+
+  #[Test]
+  public function cannot_fetch_slices_twice() {
+    $fixture= new Blob('Test');
+    iterator_to_array($fixture->slices());
+
+    Assert::throws(Error::class, fn() => iterator_to_array($fixture->slices()));
   }
 }
