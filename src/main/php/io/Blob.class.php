@@ -9,14 +9,16 @@ use util\{Bytes, Objects};
 class Blob implements IteratorAggregate, Value {
   private $parts;
   private $iterator= null;
+  public $meta= [];
 
   /**
    * Creates a new blob from parts
    *
    * @param  iterable|string|util.Bytes|io.streams.InputStream $parts
+   * @param  [:var] $meta
    * @throws lang.IllegalArgumentException
    */
-  public function __construct($parts= []) {
+  public function __construct($parts= [], array $meta= []) {
     if ($parts instanceof InputStream) {
       $this->iterator= function() {
         static $started= false;
@@ -44,6 +46,7 @@ class Blob implements IteratorAggregate, Value {
     }
 
     $this->parts= $parts;
+    $this->meta= $meta;
   }
 
   /** @return iterable */

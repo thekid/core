@@ -32,6 +32,17 @@ class BlobTest {
     new Blob(null);
   }
 
+  #[Test]
+  public function meta_empty_by_default() {
+    Assert::equals([], (new Blob('Test'))->meta);
+  }
+
+  #[Test]
+  public function meta() {
+    $meta= ['type' => 'text/plain'];
+    Assert::equals($meta, (new Blob('Test', $meta))->meta);
+  }
+
   #[Test, Values(from: 'cases')]
   public function iteration($fixture, $expected) {
     Assert::equals($expected, iterator_to_array($fixture));
