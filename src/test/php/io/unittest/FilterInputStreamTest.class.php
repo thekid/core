@@ -1,7 +1,8 @@
 <?php namespace io\unittest;
 
 use io\streams\{FilterInputStream, MemoryInputStream, Streams};
-use test\{Assert, Test, Values};
+use lang\IllegalStateException;
+use test\{Assert, Expect, Test, Values};
 
 class FilterInputStreamTest {
 
@@ -26,6 +27,13 @@ class FilterInputStreamTest {
   #[Test]
   public function lambda() {
     Assert::equals('test', $this->read('TEST', fn($chunk) => strtolower($chunk)));
+  }
+
+  #[Test, Expect(IllegalStateException::class)]
+  public function lambda_raising_error() {
+    $this->read('TEST', function($chunk) {
+      throw new IllegalStateException('Test');
+    });
   }
 
   #[Test]
