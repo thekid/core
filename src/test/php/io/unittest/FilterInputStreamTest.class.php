@@ -24,11 +24,16 @@ class FilterInputStreamTest {
   }
 
   #[Test]
+  public function lambda() {
+    Assert::equals('test', $this->read('TEST', fn($chunk) => strtolower($chunk)));
+  }
+
+  #[Test]
   public function user_filter() {
     Assert::equals('test', $this->read('TEST', function($in, $out, &$consumed, $closing) {
       while ($bucket= stream_bucket_make_writeable($in)) {
-        $bucket->data= strtolower($bucket->data);
         $consumed+= $bucket->datalen;
+        $bucket->data= strtolower($bucket->data);
         stream_bucket_append($out, $bucket);
       }
       return PSFS_PASS_ON;

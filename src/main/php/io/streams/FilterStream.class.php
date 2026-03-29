@@ -1,7 +1,7 @@
 <?php namespace io\streams;
 
+use ReflectionFunction, php_user_filter;
 use lang\IllegalArgumentException;
-use php_user_filter;
 
 /** @see https://www.php.net/manual/en/filters.php */
 abstract class FilterStream {
@@ -13,6 +13,16 @@ abstract class FilterStream {
   static function __static() {
 
     // Suppress "Declaration should be compatible" in PHP 7.4
+    stream_filter_register('iostrl.*', get_class(@new class() extends php_user_filter {
+      public function filter($in, $out, &$consumed, bool $closing): int {
+        while ($bucket= stream_bucket_make_writeable($in)) {
+          $consumed+= $bucket->datalen;
+          $bucket->data= FilterStream::$filters[$this->filtername]($bucket->data);
+          null === $bucket->data || stream_bucket_append($out, $bucket);
+        }
+        return PSFS_PASS_ON;
+      }
+    }));
     stream_filter_register('iostrf.*', get_class(@new class() extends php_user_filter {
       public function filter($in, $out, &$consumed, bool $closing): int {
         return FilterStream::$filters[$this->filtername]($in, $out, $consumed, $closing);
@@ -32,7 +42,8 @@ abstract class FilterStream {
     if (is_string($filter)) {
       $name= $filter;
     } else {
-      $this->remove[]= $name= 'iostrf.'.(++self::$id);
+      $f= new ReflectionFunction($filter);
+      $this->remove[]= $name= (1 === $f->getNumberOfParameters() ? 'iostrl.' : 'iostrf.').(++self::$id);
       self::$filters[$name]= $filter;
     }
 
