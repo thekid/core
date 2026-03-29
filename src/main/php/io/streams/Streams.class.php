@@ -7,19 +7,14 @@ use io\IOException;
  * Wraps I/O streams into PHP streams
  *
  * @test  io.unittest.StreamWrappingTest
- * @see   php://streams
+ * @see   https://www.php.net/manual/de/ref.stream.php
  */
 abstract class Streams {
-  protected static 
-    $streams = [];
-  
-  public
-    $context = null;
+  protected static $streams= [];
+  protected $length= 0;
+  protected $id= null;
+  public $context= null;
 
-  protected 
-    $length  = 0,
-    $id      = null;
-    
   static function __static() {
     stream_wrapper_register('iostrr', get_class(new class() extends Streams {
       static function __static() { }
@@ -125,7 +120,7 @@ abstract class Streams {
     self::$streams[$hash]= $s;
     return 'iostrw://'.$hash;
   }
-  
+
   /**
    * Read an IOElements' contents completely into a buffer in a single call.
    *
