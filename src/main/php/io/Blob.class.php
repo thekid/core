@@ -73,14 +73,17 @@ class Blob implements IteratorAggregate, Value {
     $it= function() use($filter) {
       $fd= Streams::readableFd($this->stream());
       if (!stream_filter_append($fd, $filter, STREAM_FILTER_READ)) {
+        fclose($fd);
         throw new OperationNotSupportedException('Cannot stream '.$filter);
       }
 
-      do {
-        yield fread($fd, 8192);
-      } while (!feof($fd));
-
-      fclose($fd);
+      try {
+        do {
+          yield fread($fd, 8192);
+        } while (!feof($fd));
+      } finally {
+        fclose($fd);
+      }
     };
 
     $meta= $this->meta;
