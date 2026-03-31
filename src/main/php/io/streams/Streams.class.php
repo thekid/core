@@ -1,7 +1,6 @@
 <?php namespace io\streams;
 
-use io\FileNotFoundException;
-use io\IOException;
+use io\{FileNotFoundException, OperationNotSupportedException, IOException};
 
 /**
  * Wraps I/O streams into PHP streams
@@ -132,6 +131,23 @@ abstract class Streams {
     $r= '';
     while ($s->available() > 0) $r.= $s->read();
     return $r;
+  }
+
+  /**
+   * Read an IOElements' contents completely into a buffer in a single call.
+   *
+   * @param   io.streams.InputStream $s
+   * @param   int $offset
+   * @param   int $whence default SEEK_SET (one of SEEK_[SET|CUR|END])
+   * @return  void
+   * @throws  io.IOException
+   */
+  public static function seek($s, $offset, $whence= SEEK_SET) {
+    if ($s instanceof Seekable) {
+      $s->seek($offset, $whence);
+    } else {
+      throw new OperationNotSupportedException('Cannot seek instances of '.nameof($s));
+    }
   }
 
   /**
