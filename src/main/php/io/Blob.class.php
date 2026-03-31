@@ -69,7 +69,7 @@ class Blob implements IteratorAggregate, Value {
   }
 
   /** Creates a new blob with the given encoding applied */
-  public function encoded(string $encoding, callable $filter= null): self {
+  public function encoded(string $encoding, ?callable $filter= null): self {
     $meta= $this->meta;
     $meta['encoding']??= [];
     $meta['encoding'][]= $encoding;
