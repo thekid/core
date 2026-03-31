@@ -5,6 +5,9 @@ XP Framework Core ChangeLog
 
 ### Features
 
+* Merged PR #360: Add an `io.Blob` class as a bridge between string, bytes
+  and streams, see https://developer.mozilla.org/en-US/docs/Web/API/Blob
+  (@thekid)
 * Merged PR #359: Integrate PHP's stream filters into `io.streams`, see
   https://www.php.net/manual/en/filters.php
   (@thekid)
