@@ -68,12 +68,12 @@ class Blob implements IteratorAggregate, Value {
     ;
   }
 
-  /** Creates a new blob with the given filter applied */
-  public function encoded(string $filter): self {
+  /** Creates a new blob with the given encoding applied */
+  public function encoded(string $encoding, callable $filter= null): self {
     $meta= $this->meta;
     $meta['encoding']??= [];
-    $meta['encoding'][]= $filter;
-    return new self(new FilterInputStream($this->stream(), $filter), $meta);
+    $meta['encoding'][]= $encoding;
+    return new self(new FilterInputStream($this->stream(), $filter ?? $encoding), $meta);
   }
 
   /** @return iterable */

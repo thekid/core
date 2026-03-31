@@ -108,4 +108,12 @@ class BlobTest {
     Assert::equals(['convert.base64-encode'], $base64->meta['encoding']);
     Assert::equals('VGVzdA==', (string)$base64);
   }
+
+  #[Test]
+  public function custom_encoding() {
+    $base64= (new Blob('Test'))->encoded('uppercase', fn($chunk) => strtoupper($chunk));
+
+    Assert::equals(['uppercase'], $base64->meta['encoding']);
+    Assert::equals('TEST', (string)$base64);
+  }
 }
