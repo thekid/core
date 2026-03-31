@@ -3,6 +3,12 @@ XP Framework Core ChangeLog
 
 ## ?.?.? / ????-??-??
 
+### Features
+
+* Merged PR #359: Integrate PHP's stream filters into `io.streams`, see
+  https://www.php.net/manual/en/filters.php
+  (@thekid)
+
 ## 12.8.0 / 2026-02-01
 
 ### Features
