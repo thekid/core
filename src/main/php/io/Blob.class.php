@@ -1,7 +1,7 @@
 <?php namespace io;
 
 use IteratorAggregate, Traversable;
-use io\streams\{InputStream, IterableInputStream, Streams};
+use io\streams\{InputStream, IterableInputStream, FilterInputStream, Streams};
 use lang\{Value, IllegalArgumentException};
 use util\{Bytes, Objects};
 
@@ -70,27 +70,10 @@ class Blob implements IteratorAggregate, Value {
 
   /** Creates a new blob with the given filter applied */
   public function encoded(string $filter): self {
-    $it= function() use($filter) {
-      $fd= Streams::readableFd($this->stream());
-      if (!stream_filter_append($fd, $filter, STREAM_FILTER_READ)) {
-        fclose($fd);
-        throw new OperationNotSupportedException('Cannot stream '.$filter);
-      }
-
-      try {
-        do {
-          yield fread($fd, 8192);
-        } while (!feof($fd));
-      } finally {
-        fclose($fd);
-      }
-    };
-
     $meta= $this->meta;
     $meta['encoding']??= [];
     $meta['encoding'][]= $filter;
-
-    return new self($it(), $meta);
+    return new self(new FilterInputStream($this->stream(), $filter), $meta);
   }
 
   /** @return iterable */
