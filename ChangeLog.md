@@ -3,6 +3,8 @@ XP Framework Core ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 12.9.0 / 2026-04-01
+
 ### Features
 
 * Merged PR #360: Add an `io.Blob` class as a bridge between string, bytes
