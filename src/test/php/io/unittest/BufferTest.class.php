@@ -1,7 +1,7 @@
 <?php namespace io\unittest;
 
 use io\streams\Buffer;
-use io\{File, TempFile, Folder, Path, IOException};
+use io\{File, TempFile, Folder, Path, Blob, IOException};
 use lang\{Environment, IllegalArgumentException};
 use test\{Assert, Test, Values};
 
@@ -216,5 +216,14 @@ class BufferTest {
 
     $fixture->close();
     $fixture->close();
+  }
+
+  #[Test]
+  public function integrated_with_blob_api() {
+    $fixture= $this->newFixture();
+    $fixture->write('Test');
+    $fixture->reset();
+
+    Assert::equals('Test', (string)(new Blob($fixture))->bytes());
   }
 }
