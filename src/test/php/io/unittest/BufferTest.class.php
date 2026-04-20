@@ -224,6 +224,8 @@ class BufferTest {
     $fixture->write('Test');
     $fixture->reset();
 
-    Assert::equals('Test', (string)(new Blob($fixture))->bytes());
+    $blob= new Blob($fixture);
+    Assert::equals('Test', (string)$blob->bytes());
+    Assert::equals('Test', (string)$blob->bytes());
   }
 }
