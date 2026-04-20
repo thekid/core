@@ -1,6 +1,6 @@
 <?php namespace io\streams;
 
-use io\{File, Folder, Path, IOException};
+use io\{File, Folder, Path, TempFile, IOException};
 use lang\IllegalArgumentException;
 
 /**
@@ -36,10 +36,8 @@ class Buffer implements InputStream, OutputStream, Seekable {
       $this->files= fn() => $files;
     } else if ($files instanceof Path && $files->isFile()) {
       $this->files= fn() => $files->asFile();
-    } else if ($files instanceof Folder) {
-      $this->files= fn() => new File(tempnam($files->getURI(), "b{$this->threshold}"));
     } else {
-      $this->files= fn() => new File(tempnam((string)$files, "b{$this->threshold}"));
+      $this->files= fn() => new TempFile("b{$this->threshold}", $files);
     }
   }
 
