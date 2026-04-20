@@ -16,9 +16,9 @@ use lang\{Environment, IllegalStateException};
  * printf('Created temporary file "%s"', $f->getURI());
  * ```
  *
- * Note: The temporary file is not deleted when the file
- * handle is closed (e.g., a call to close()), this will have
- * to be done manually.
+ * The temporary file is deleted when the object representing
+ * it goes of out scope and is garbage-collected. To keep the
+ * file, use the `persistent()` method.
  *
  * Note: A possible race condition exists: From the time the
  * file name string is created (when the constructor is called)
@@ -34,9 +34,23 @@ use lang\{Environment, IllegalStateException};
 class TempFile extends File {
   private $persistent= false;
 
-  /** @param string $prefix default "tmp" */
-  public function __construct($prefix= 'tmp') {
-    parent::__construct(tempnam(Environment::tempDir(), $prefix.uniqid(microtime(true))));
+  /**
+   * Creates a new temporary file with a given prefix. Uses the environment's
+   * temporary directory (typically `$TEMP`) if no other location is supplied.
+   *
+   * @param  string $prefix
+   * @param  ?string|io.Path|io.Folder $location
+   */
+  public function __construct($prefix= 'tmp', $location= null) {
+    if (null === $location) {
+      $directory= Environment::tempDir();
+    } else if ($location instanceof Folder) {
+      $directory= $location->getURI();
+    } else {
+      $directory= (string)$location;
+    }
+
+    parent::__construct(tempnam($directory, $prefix.uniqid(microtime(true))));
   }
 
   /**
