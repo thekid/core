@@ -1,35 +1,62 @@
 <?php namespace io\unittest;
 
-use io\File;
 use io\streams\Buffer;
-use lang\{Environment, IllegalArgumentException, IllegalStateException};
-use test\{Assert, Before, Test, Values};
+use io\{File, TempFile, Folder, Path, IOException};
+use lang\{Environment, IllegalArgumentException};
+use test\{Assert, Test, Values};
 
 class BufferTest {
   const THRESHOLD= 128;
-  private $temp;
 
-  #[Before]
-  public function temp() {
-    $this->temp= Environment::tempDir();
+  /** Creates a new fixture */
+  private function newFixture(int $threshold= self::THRESHOLD, bool $persist= false): Buffer {
+    return new Buffer(Environment::tempDir(), $threshold, $persist);
+  }
+
+  /** @return iterable */
+  private function directories() {
+    $temp= Environment::tempDir();
+
+    yield [$temp];
+    yield [new Path($temp)];
+    yield [new Folder($temp)];
+  }
+
+  #[Test, Values(from: 'directories')]
+  public function with_directory($files) {
+    new Buffer($files, self::THRESHOLD);
   }
 
   #[Test]
-  public function can_create() {
-    new Buffer($this->temp, self::THRESHOLD);
+  public function with_temp_file() {
+    $t= new TempFile();
+    $fixture= new Buffer($t, 0);
+    $fixture->write('Test');
+
+    Assert::equals($t, $fixture->file());
+  }
+
+  #[Test]
+  public function with_temp_path() {
+    $t= new TempFile();
+    $fixture= new Buffer(new Path($t), 0);
+    $fixture->write('Test');
+
+    Assert::equals($t, $fixture->file());
   }
 
   #[Test]
   public function threshold_must_be_larger_than_zero() {
-    Assert::throws(IllegalArgumentException::class, fn() => new Buffer($this->temp, -1));
+    Assert::throws(IllegalArgumentException::class, fn() => $this->newFixture(-1));
   }
 
   #[Test, Values([1, 127, 128])]
   public function uses_memory_under_threshold($length) {
     $bytes= str_repeat('*', $length);
 
-    $fixture= new Buffer($this->temp, self::THRESHOLD);
+    $fixture= $this->newFixture();
     $fixture->write($bytes);
+    $fixture->reset();
 
     Assert::null($fixture->file());
     Assert::equals($length, $fixture->size());
@@ -40,8 +67,9 @@ class BufferTest {
   public function stores_file_when_exceeding_threshold($length) {
     $bytes= str_repeat('*', $length);
 
-    $fixture= new Buffer($this->temp, self::THRESHOLD);
+    $fixture= $this->newFixture();
     $fixture->write($bytes);
+    $fixture->reset();
 
     Assert::instance(File::class, $fixture->file());
     Assert::equals($length, $fixture->size());
@@ -52,8 +80,9 @@ class BufferTest {
   public function read_after_eof($length) {
     $bytes= str_repeat('*', $length);
 
-    $fixture= new Buffer($this->temp, self::THRESHOLD);
+    $fixture= $this->newFixture();
     $fixture->write($bytes);
+    $fixture->reset();
 
     Assert::equals($length, $fixture->available());
     Assert::equals($bytes, $fixture->read());
@@ -65,41 +94,124 @@ class BufferTest {
   public function reset($length) {
     $bytes= str_repeat('*', $length);
 
-    $fixture= new Buffer($this->temp, self::THRESHOLD);
+    $fixture= $this->newFixture();
     $fixture->write($bytes);
 
-    Assert::equals($length, $fixture->available());
-    Assert::equals($bytes, $fixture->read());
+    // At EOF, there is nothing to read
+    Assert::equals(0, $fixture->available());
+    Assert::equals('', $fixture->read());
 
     $fixture->reset();
 
+    // Back at the beginning of the file
     Assert::equals($length, $fixture->available());
     Assert::equals($bytes, $fixture->read());
   }
 
-  #[Test]
-  public function cannot_write_after_draining_started() {
-    $fixture= new Buffer($this->temp, self::THRESHOLD);
-    $fixture->write('Test');
-    Assert::false($fixture->draining());
+  #[Test, Values([3, 4, 5, 6, 7])]
+  public function write_after_read_with($threshold) {
+    $fixture= $this->newFixture($threshold);
 
-    $fixture->read();
-    Assert::true($fixture->draining());
-    Assert::throws(IllegalStateException::class, fn() => $fixture->write('Test'));
+    $fixture->write('Test');
+    $fixture->seek(-4, SEEK_CUR);
+    Assert::equals('Test', $fixture->read());
+
+    $fixture->write('ed');
+    $fixture->seek(-2, SEEK_CUR);
+    Assert::equals('ed', $fixture->read());
+  }
+
+  #[Test]
+  public function file_created_on_write() {
+    $fixture= $this->newFixture(0);
+    $fixture->write('Test');
+
+    Assert::true($fixture->file()->exists());
   }
 
   #[Test]
   public function file_deleted_on_close() {
-    $fixture= new Buffer($this->temp, 0);
+    $fixture= $this->newFixture(0);
     $fixture->write('Test');
+    Assert::true($fixture->file()->exists());
 
     $fixture->close();
     Assert::false($fixture->file()->exists());
   }
 
   #[Test]
+  public function file_kept_on_close_with_persist() {
+    $fixture= $this->newFixture(0, true);
+    $fixture->write('Test');
+    Assert::true($fixture->file()->exists());
+
+    $fixture->close();
+    Assert::true($fixture->file()->exists());
+  }
+
+  #[Test, Values([0, 128])]
+  public function tell_after_write_with($threshold) {
+    $fixture= $this->newFixture($threshold);
+    $fixture->write('Test success');
+
+    Assert::equals(12, $fixture->tell());
+    Assert::equals('', $fixture->read());
+  }
+
+  #[Test, Values([0, 128])]
+  public function tell_after_read_with($threshold) {
+    $fixture= $this->newFixture($threshold);
+    $fixture->write('Test success');
+    $fixture->reset();
+    $fixture->read(5);
+
+    Assert::equals(5, $fixture->tell());
+    Assert::equals('success', $fixture->read());
+  }
+
+  #[Test, Values([0, 128])]
+  public function seek_set_with($threshold) {
+    $fixture= $this->newFixture($threshold);
+    $fixture->write('Test success');
+    $fixture->seek(5, SEEK_SET);
+
+    Assert::equals(5, $fixture->tell());
+    Assert::equals('success', $fixture->read());
+  }
+
+  #[Test, Values([0, 128])]
+  public function seek_cur_with($threshold) {
+    $fixture= $this->newFixture($threshold);
+    $fixture->write('Test success');
+    $fixture->seek(-7, SEEK_CUR);
+
+    Assert::equals(5, $fixture->tell());
+    Assert::equals('success', $fixture->read());
+  }
+
+  #[Test, Values([0, 128])]
+  public function seek_end_with($threshold) {
+    $fixture= $this->newFixture($threshold);
+    $fixture->write('Test success');
+
+    $fixture->seek(-7, SEEK_END);
+    Assert::equals(5, $fixture->tell());
+    Assert::equals('success', $fixture->read());
+  }
+
+  #[Test]
+  public function cannot_seek_before_start() {
+    Assert::throws(IOException::class, fn() => $this->newFixture()->seek(-1));
+  }
+
+  #[Test]
+  public function cannot_seek_invalid_whence() {
+    Assert::throws(IOException::class, fn() => $this->newFixture()->seek(0, 6100));
+  }
+
+  #[Test]
   public function double_close() {
-    $fixture= new Buffer($this->temp, 0);
+    $fixture= $this->newFixture(0);
     $fixture->write('Test');
 
     $fixture->close();
