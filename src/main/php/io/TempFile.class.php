@@ -89,6 +89,6 @@ class TempFile extends File {
   /** Ensures file is closed and deleted */
   public function __destruct() {
     parent::__destruct();
-    $this->persistent || file_exists($this->uri) && unlink($this->uri);
+    $this->persistent || (file_exists($this->uri) && unlink($this->uri));
   }
 }
