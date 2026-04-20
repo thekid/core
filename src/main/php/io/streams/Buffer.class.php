@@ -156,7 +156,7 @@ class Buffer implements InputStream, OutputStream, Seekable {
     if (null === $this->file || !$this->file->isOpen()) return;
 
     $this->file->close();
-    $this->persist || $this->file->unlink();
+    $this->persist || $this->file->exists() && $this->file->unlink();
   }
 
   /** Ensure the file (if any) is closed */
