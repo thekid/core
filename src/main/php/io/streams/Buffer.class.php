@@ -47,9 +47,6 @@ class Buffer implements InputStream, OutputStream, Seekable {
   /** Returns the underlying file, if any */
   public function file(): ?File { return $this->file; }
 
-  /** Returns whether this buffer is draining */
-  public function draining(): bool { return ($this->file ? $this->file->tell() : $this->pointer) > 0; }
-
   /**
    * Write a string
    *
