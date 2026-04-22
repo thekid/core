@@ -25,7 +25,7 @@ class Buffer implements InputStream, OutputStream, Seekable {
    * @param  bool $persist
    * @throws lang.IllegalArgumentException
    */
-  public function __construct($files, int $threshold, bool $persist= false) {
+  public function __construct($files, int $threshold= 0, bool $persist= false) {
     if ($threshold < 0) {
       throw new IllegalArgumentException('Threshold must be >= 0');
     }

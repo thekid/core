@@ -30,7 +30,7 @@ class BufferTest {
   #[Test]
   public function with_temp_file() {
     $t= new TempFile();
-    $fixture= new Buffer($t, 0);
+    $fixture= new Buffer($t);
     $fixture->write('Test');
 
     Assert::equals($t, $fixture->file());
@@ -39,7 +39,7 @@ class BufferTest {
   #[Test]
   public function with_temp_path() {
     $t= new TempFile();
-    $fixture= new Buffer(new Path($t), 0);
+    $fixture= new Buffer(new Path($t));
     $fixture->write('Test');
 
     Assert::equals($t, $fixture->file());
