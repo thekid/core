@@ -3,6 +3,11 @@ XP Framework Core ChangeLog
 
 ## ?.?.? / ????-??-??
 
+### Features
+
+* Merged PR #361: Have `Buffer` class implement the `Seekable` interface
+  (@thekid)
+
 ## 12.9.0 / 2026-04-01
 
 ### Features
