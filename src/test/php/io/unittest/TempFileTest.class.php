@@ -1,10 +1,17 @@
 <?php namespace io\unittest;
 
-use io\{Files, IOException, TempFile};
+use io\{Path, Files, Folder, IOException, TempFile};
 use lang\{Environment, IllegalStateException};
-use test\{Assert, Test};
+use test\{Assert, Test, Values};
 
 class TempFileTest {
+
+  /** @return iterable */
+  private function directories() {
+    yield ['.'];
+    yield [new Path('.')];
+    yield [new Folder('.')];
+  }
 
   #[Test]
   public function can_create() {
@@ -15,6 +22,12 @@ class TempFileTest {
   public function uses_tempdir() {
     $t= new TempFile();
     Assert::equals(realpath(Environment::tempDir()), realpath($t->getPath()));
+  }
+
+  #[Test, Values(from: 'directories')]
+  public function supply_tempdir($location) {
+    $t= new TempFile('tmp', $location);
+    Assert::equals(realpath('.'), realpath($t->getPath()));
   }
 
   #[Test]

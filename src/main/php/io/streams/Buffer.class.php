@@ -1,7 +1,7 @@
 <?php namespace io\streams;
 
-use io\{File, Folder};
-use lang\{IllegalArgumentException, IllegalStateException};
+use io\{File, Folder, Path, TempFile, IOException};
+use lang\IllegalArgumentException;
 
 /**
  * Buffers in memory up until a given threshold, using the file system once
@@ -10,28 +10,35 @@ use lang\{IllegalArgumentException, IllegalStateException};
  * @see   https://github.com/xp-forge/web/issues/118
  * @test  io.unittest.BufferTest
  */
-class Buffer implements InputStream, OutputStream {
-  private $files, $threshold;
+class Buffer implements InputStream, OutputStream, Seekable {
+  private $files, $threshold, $persist;
   private $memory= '';
   private $file= null;
   private $size= 0;
   private $pointer= 0;
-  private $draining= false;
 
   /**
    * Creates a new buffer
    *
-   * @param  io.Folder|io.Path|string $files
+   * @param  string|io.Folder|io.Path|io.File $files
    * @param  int $threshold
+   * @param  bool $persist
    * @throws lang.IllegalArgumentException
    */
-  public function __construct($files, int $threshold) {
+  public function __construct($files, int $threshold= 0, bool $persist= false) {
     if ($threshold < 0) {
       throw new IllegalArgumentException('Threshold must be >= 0');
     }
-
-    $this->files= $files instanceof Folder ? $files->getURI() : (string)$files;
     $this->threshold= $threshold;
+    $this->persist= $persist;
+
+    if ($files instanceof File) {
+      $this->files= fn() => $files;
+    } else if ($files instanceof Path && $files->isFile()) {
+      $this->files= fn() => $files->asFile();
+    } else {
+      $this->files= fn() => new TempFile("b{$this->threshold}", $files);
+    }
   }
 
   /** Returns buffer size */
@@ -40,32 +47,39 @@ class Buffer implements InputStream, OutputStream {
   /** Returns the underlying file, if any */
   public function file(): ?File { return $this->file; }
 
-  /** Returns whether this buffer is draining */
-  public function draining(): bool { return $this->draining; }
-
   /**
    * Write a string
    *
-   * @param  var $arg
+   * @param  string $bytes
    * @return void
-   * @throws lang.IllegalStateException
    */
   public function write($bytes) {
-    if ($this->draining) throw new IllegalStateException('Started draining buffer');
+    $length= strlen($bytes);
 
-    $this->size+= strlen($bytes);
-    if ($this->size <= $this->threshold) {
-      $this->memory.= $bytes;
-      return;
-    }
+    if ($this->size + $length <= $this->threshold) {
+      $tail= strlen($this->memory);
+      if ($this->pointer < $tail) {
+        $this->memory= substr_replace($this->memory, $bytes, $this->pointer, $length);
+      } else if ($this->pointer > $tail) {
+        $this->memory.= str_repeat("\x00", $this->pointer - $tail).$bytes;
+      } else {
+        $this->memory.= $bytes;
+      }
 
-    if (null === $this->file) {
-      $this->file= new File(tempnam($this->files, "b{$this->threshold}"));
-      $this->file->open(File::READWRITE);
-      $this->file->write($this->memory);
-      $this->memory= null;
+      $this->pointer+= $length;
+      $this->size= strlen($this->memory);
+    } else {
+      if (null === $this->file) {
+        $this->file= ($this->files)();
+        $this->file->open(File::REWRITE);
+        $this->file->write($this->memory);
+        $this->file->seek($this->pointer, SEEK_SET);
+        $this->memory= null;
+      }
+
+      $this->file->write($bytes);
+      $this->size= $this->file->size();
     }
-    $this->file->write($bytes);
   }
 
   /** @return void */
@@ -73,22 +87,9 @@ class Buffer implements InputStream, OutputStream {
     $this->file && $this->file->flush();
   }
 
-  /**
-   * Resets buffer to be able to read from the beginning
-   *
-   * @return  void
-   */
-  public function reset() {
-    $this->file ? $this->file->seek(0, SEEK_SET) : $this->pointer= 0;
-    $this->draining= true;
-  }
-
   /** @return int */
   public function available() {
-    return $this->draining
-      ? $this->size - ($this->file ? $this->file->tell() : $this->pointer)
-      : $this->size
-    ;
+    return $this->size - ($this->file ? $this->file->tell() : $this->pointer);
   }
 
   /**
@@ -99,14 +100,50 @@ class Buffer implements InputStream, OutputStream {
    */
   public function read($limit= 8192) {
     if ($this->file) {
-      $this->draining || $this->file->seek(0, SEEK_SET) && $this->draining= true;
       return (string)$this->file->read($limit);
     } else {
-      $this->draining= true;
       $chunk= substr($this->memory, $this->pointer, $limit);
       $this->pointer+= strlen($chunk);
       return $chunk;
     }
+  }
+
+  /**
+   * Resets buffer to be able to read from the beginning. Optimized
+   * form of calling `seek(0, SEEK_SET)`.
+   *
+   * @return  void
+   */
+  public function reset() {
+    $this->file ? $this->file->seek(0, SEEK_SET) : $this->pointer= 0;
+  }
+
+  /**
+   * Seeks to a given offset.
+   *
+   * @param  int $offset
+   * @param  int $whence SEEK_SET, SEEK_CUR or SEEK_END
+   * @return void
+   * @throws io.IOException
+   */
+  public function seek($offset, $whence= SEEK_SET) {
+    switch ($whence) {
+      case SEEK_SET: $position= $offset; break;
+      case SEEK_CUR: $position= ($this->file ? $this->file->tell() : $this->pointer) + $offset; break;
+      case SEEK_END: $position= $this->size + $offset; break;
+      default: $position= -1; break;
+    }
+
+    if ($position < 0) {
+      throw new IOException("Seek error, position {$offset} in mode {$whence}");
+    }
+
+    $this->file ? $this->file->seek($position, SEEK_SET) : $this->pointer= $position;
+  }
+
+  /** @return int */
+  public function tell() {
+    return $this->file ? $this->file->tell() : $this->pointer;
   }
 
   /** @return void */
@@ -114,7 +151,7 @@ class Buffer implements InputStream, OutputStream {
     if (null === $this->file || !$this->file->isOpen()) return;
 
     $this->file->close();
-    $this->file->unlink();
+    $this->persist || ($this->file->exists() && $this->file->unlink());
   }
 
   /** Ensure the file (if any) is closed */
