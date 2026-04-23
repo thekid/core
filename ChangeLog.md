@@ -5,6 +5,9 @@ XP Framework Core ChangeLog
 
 ### Features
 
+* Merged PR #362: Add a seekable input stream which spools to a temporary
+  file: `io.streams.SpooledInputStream`
+  (@thekid)
 * Merged PR #361: Have `Buffer` class implement the `Seekable` interface
   (@thekid)
 
