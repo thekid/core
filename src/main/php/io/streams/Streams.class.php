@@ -121,9 +121,9 @@ abstract class Streams {
   }
 
   /**
-   * Read an IOElements' contents completely into a buffer in a single call.
+   * Read an input streams' contents completely into a buffer in a single call.
    *
-   * @param   io.streams.InputStream s
+   * @param   io.streams.InputStream $s
    * @return  string
    * @throws  io.IOException
    */
@@ -134,15 +134,16 @@ abstract class Streams {
   }
 
   /**
-   * Read an IOElements' contents completely into a buffer in a single call.
+   * Tries seeking an input stream.
    *
    * @param   io.streams.InputStream $s
    * @param   int $offset
    * @param   int $whence default SEEK_SET (one of SEEK_[SET|CUR|END])
    * @return  void
    * @throws  io.IOException
+   * @throws  io.OperationNotSupportedException
    */
-  public static function seek($s, $offset, $whence= SEEK_SET) {
+  public static function seek(InputStream $s, $offset, $whence= SEEK_SET) {
     if ($s instanceof Seekable) {
       $s->seek($offset, $whence);
     } else {

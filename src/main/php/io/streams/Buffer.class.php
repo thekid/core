@@ -29,6 +29,7 @@ class Buffer implements InputStream, OutputStream, Seekable {
     if ($threshold < 0) {
       throw new IllegalArgumentException('Threshold must be >= 0');
     }
+
     $this->threshold= $threshold;
     $this->persist= $persist;
 
