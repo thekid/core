@@ -3,6 +3,8 @@ XP Framework Core ChangeLog
 
 ## ?.?.? / ????-??-??
 
+## 12.10.0 / 2026-04-23
+
 ### Bugfixes
 
 * Fixed `io.streams.StreamTransfer::transferAll()` not correctly returning
@@ -11,6 +13,8 @@ XP Framework Core ChangeLog
 
 ### Features
 
+* Optimized reading from util.Bytes, iterables and strings in `io.Blob` class
+  (@thekid)
 * Merged PR #362: Add a seekable input stream which spools to a temporary
   file: `io.streams.SpooledInputStream`
   (@thekid)
