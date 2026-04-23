@@ -1,25 +1,19 @@
 <?php namespace io\streams;
 
-use io\FileNotFoundException;
-use io\IOException;
+use io\{FileNotFoundException, OperationNotSupportedException, IOException};
 
 /**
  * Wraps I/O streams into PHP streams
  *
  * @test  io.unittest.StreamWrappingTest
- * @see   php://streams
+ * @see   https://www.php.net/manual/de/ref.stream.php
  */
 abstract class Streams {
-  protected static 
-    $streams = [];
-  
-  public
-    $context = null;
+  protected static $streams= [];
+  protected $length= 0;
+  protected $id= null;
+  public $context= null;
 
-  protected 
-    $length  = 0,
-    $id      = null;
-    
   static function __static() {
     stream_wrapper_register('iostrr', get_class(new class() extends Streams {
       static function __static() { }
@@ -125,11 +119,11 @@ abstract class Streams {
     self::$streams[$hash]= $s;
     return 'iostrw://'.$hash;
   }
-  
+
   /**
-   * Read an IOElements' contents completely into a buffer in a single call.
+   * Read an input streams' contents completely into a buffer in a single call.
    *
-   * @param   io.streams.InputStream s
+   * @param   io.streams.InputStream $s
    * @return  string
    * @throws  io.IOException
    */
@@ -137,6 +131,24 @@ abstract class Streams {
     $r= '';
     while ($s->available() > 0) $r.= $s->read();
     return $r;
+  }
+
+  /**
+   * Tries seeking an input stream.
+   *
+   * @param   io.streams.InputStream $s
+   * @param   int $offset
+   * @param   int $whence default SEEK_SET (one of SEEK_[SET|CUR|END])
+   * @return  void
+   * @throws  io.IOException
+   * @throws  io.OperationNotSupportedException
+   */
+  public static function seek(InputStream $s, $offset, $whence= SEEK_SET) {
+    if ($s instanceof Seekable) {
+      $s->seek($offset, $whence);
+    } else {
+      throw new OperationNotSupportedException('Cannot seek instances of '.nameof($s));
+    }
   }
 
   /**

@@ -3,6 +3,31 @@ XP Framework Core ChangeLog
 
 ## ?.?.? / ????-??-??
 
+### Bugfixes
+
+* Fixed `io.streams.StreamTransfer::transferAll()` not correctly returning
+  the number of written bytes as advertised
+  (@thekid)
+
+### Features
+
+* Merged PR #362: Add a seekable input stream which spools to a temporary
+  file: `io.streams.SpooledInputStream`
+  (@thekid)
+* Merged PR #361: Have `Buffer` class implement the `Seekable` interface
+  (@thekid)
+
+## 12.9.0 / 2026-04-01
+
+### Features
+
+* Merged PR #360: Add an `io.Blob` class as a bridge between string, bytes
+  and streams, see https://developer.mozilla.org/en-US/docs/Web/API/Blob
+  (@thekid)
+* Merged PR #359: Integrate PHP's stream filters into `io.streams`, see
+  https://www.php.net/manual/en/filters.php
+  (@thekid)
+
 ## 12.8.0 / 2026-02-01
 
 ### Features
