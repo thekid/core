@@ -49,9 +49,10 @@ class StreamTransferTest {
     $out= new MemoryOutputStream();
 
     $s= new StreamTransfer(new MemoryInputStream('Hello'), $out);
-    $s->transferAll();
+    $size= $s->transferAll();
 
     Assert::equals('Hello', $out->bytes());
+    Assert::equals(5, $size);
   }
 
   #[Test]

@@ -3,6 +3,12 @@ XP Framework Core ChangeLog
 
 ## ?.?.? / ????-??-??
 
+### Bugfixes
+
+* Fixed `io.streams.StreamTransfer::transferAll()` not correctly returning
+  the number of written bytes as advertised
+  (@thekid)
+
 ### Features
 
 * Merged PR #362: Add a seekable input stream which spools to a temporary

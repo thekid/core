@@ -41,7 +41,9 @@ class StreamTransfer implements Closeable {
   public function transferAll() {
     $r= 0;
     while ($this->in->available()) {
-      $r+= $this->out->write($this->in->read());
+      $chunk= $this->in->read();
+      $this->out->write($chunk);
+      $r+= strlen($chunk);
     }
     return $r;
   }
