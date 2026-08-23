@@ -17,7 +17,7 @@ class ModuleLoadingTest {
   }
 
   #[After]
-  public function tearDown() {
+  public function remove() {
     foreach ($this->registered as $l) {
       ClassLoader::removeLoader($l);
     }
@@ -28,7 +28,7 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => 'module xp-framework/simple { }']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -37,7 +37,7 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => '<?php module xp-framework/tagstart { }']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -46,7 +46,7 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => '<?php module xp-framework/tagboth { } ?>']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -55,7 +55,7 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => 'module xp-framework/tagend { } ?>']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -67,7 +67,7 @@ class ModuleLoadingTest {
 
       }']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -76,7 +76,7 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => '']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -85,7 +85,7 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => 'module { }']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -96,7 +96,7 @@ class ModuleLoadingTest {
       $this->register($cl);
       Assert::equals(new Module('xp-framework/loaded', $cl), Module::forName('xp-framework/loaded'));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -112,7 +112,7 @@ class ModuleLoadingTest {
       }']));
       Assert::equals(true, Module::forName('xp-framework/initialized')->initialized);
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -134,7 +134,7 @@ class ModuleLoadingTest {
       $this->register($tracksInit);
       Assert::equals(1, Module::forName('xp-framework/tracks-init')->initialized());
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -147,7 +147,7 @@ class ModuleLoadingTest {
       ]));
       Assert::equals($cl, new XPClass(typeof(Module::forName('xp-framework/child'))->reflect()->getParentclass()));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -160,7 +160,7 @@ class ModuleLoadingTest {
       ]));
       Assert::true(typeof(Module::forName('xp-framework/impl'))->reflect()->isSubclassOf($cl->reflect()));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -174,7 +174,7 @@ class ModuleLoadingTest {
       }']);
       $this->register($selfUpfront);
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 }
