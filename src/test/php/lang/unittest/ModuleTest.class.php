@@ -1,7 +1,6 @@
 <?php namespace lang\unittest;
 
-use lang\reflect\Module;
-use lang\{ClassLoader, ElementNotFoundException};
+use lang\{Module, ClassLoader, ElementNotFoundException};
 use test\{After, Assert, Before, Expect, Test};
 
 class ModuleTest {
@@ -58,7 +57,7 @@ class ModuleTest {
   #[Test]
   public function string_representation() {
     Assert::equals(
-      'lang.reflect.Module<xp-framework/test@lang.ClassLoader>',
+      'lang.Module<xp-framework/test@lang.ClassLoader>',
       (new Module('xp-framework/test', $this->cl))->toString()
     );
   }
