@@ -156,22 +156,22 @@ class PrimitiveTest {
     Assert::equals($expected, Primitive::$BOOL->newInstance($value));
   }
 
-  #[Test, Values([['', ''], ['Test', 'Test'], [null, null], ['0', 0], ['-1', -1], ['0.5', 0.5], ['', false], ['1', true]])]
+  #[Test, Values([['', ''], ['Test', 'Test'], ['', null], ['0', 0], ['-1', -1], ['0.5', 0.5], ['', false], ['1', true]])]
   public function cast_of_string($expected, $value) {
     Assert::equals($expected, Primitive::$STRING->cast($value));
   }
 
-  #[Test, Values([[0, ''], [0, 'Test'], [2, '2'], [123, '123'], [0xFF, '0xFF'], [0755, '0755'], [null, null], [0, 0], [-1, -1], [0, 0.5], [0, false], [1, true]])]
+  #[Test, Values([[0, ''], [0, 'Test'], [2, '2'], [123, '123'], [0xFF, '0xFF'], [0755, '0755'], [0, null], [0, 0], [-1, -1], [0, 0.5], [0, false], [1, true]])]
   public function cast_of_int($expected, $value) {
     Assert::equals($expected, Primitive::$INT->cast($value));
   }
 
-  #[Test, Values([[0.0, ''], [0.0, 'Test'], [123.0, '123'], [0.0, '0xFF'], [755.0, '0755'], [null, null], [0.0, 0], [-1.0, -1], [0.5, 0.5], [0.0, false]])]
+  #[Test, Values([[0.0, ''], [0.0, 'Test'], [123.0, '123'], [0.0, '0xFF'], [755.0, '0755'], [0.0, null], [0.0, 0], [-1.0, -1], [0.5, 0.5], [0.0, false]])]
   public function cast_of_double($expected, $value) {
     Assert::equals($expected, Primitive::$FLOAT->cast($value));
   }
 
-  #[Test, Values([[false, ''], [true, 'Test'], [null, null], [false, 0], [true, -1], [true, 0.5], [false, false], [true, true]])]
+  #[Test, Values([[false, ''], [true, 'Test'], [false, null], [false, 0], [true, -1], [true, 0.5], [false, false], [true, true]])]
   public function cast_of_bool($expected, $value) {
     Assert::equals($expected, Primitive::$BOOL->cast($value));
   }

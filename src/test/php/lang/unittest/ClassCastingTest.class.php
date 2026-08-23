@@ -30,9 +30,9 @@ class ClassCastingTest extends BaseTest {
     typeof($this)->cast(Type::$VOID);
   }
 
-  #[Test]
+  #[Test, Expect(ClassCastException::class)]
   public function thisClassCastingNull() {
-    Assert::null(typeof($this)->cast(null));
+    typeof($this)->cast(null);
   }
 
   #[Test, Expect(ClassCastException::class)]

@@ -172,8 +172,6 @@ class XPClass extends Type {
    * @throws  lang.ClassCastException
    */
   public function cast($value) {
-    if (null === $value) return null;
-
     $literal= literal($this->name);
     if ($value instanceof $literal) {
       return $value;

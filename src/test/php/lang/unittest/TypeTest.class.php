@@ -377,7 +377,7 @@ class TypeTest {
 
   #[Test]
   public function array_type_union_cast_null() {
-    Assert::equals(null, Type::$ARRAY->cast(null));
+    Assert::equals([], Type::$ARRAY->cast(null));
   }
 
   #[Test, Values(from: 'callables')]
@@ -395,9 +395,9 @@ class TypeTest {
     Assert::equals($value, Type::$CALLABLE->cast($value));
   }
 
-  #[Test]
+  #[Test, Expect(ClassCastException::class)]
   public function callable_type_union_cast_null() {
-    Assert::equals(null, Type::$CALLABLE->cast(null));
+    Type::$CALLABLE->cast(null);
   }
 
   #[Test]
@@ -441,10 +441,11 @@ class TypeTest {
     Assert::equals($value, Type::$ITERABLE->cast($value));
   }
 
-  #[Test]
+  #[Test, Expect(ClassCastException::class)]
   public function iterable_type_union_cast_null() {
-    Assert::null(Type::$ITERABLE->cast(null));
+    Type::$ITERABLE->cast(null);
   }
+
   #[Test, Values(eval: '[[new Name("test")], [new \ArrayObject([])]]')]
   public function object_type_union_isInstance($value) {
     Assert::true(Type::$OBJECT->isInstance($value));
@@ -455,7 +456,7 @@ class TypeTest {
     Assert::true(Type::$OBJECT->isInstance($value));
   }
 
-  #[Test, Values(eval: '[[null], [new Name("test")], [new \ArrayObject([])]]')]
+  #[Test, Values(eval: '[[new Name("test")], [new \ArrayObject([])]]')]
   public function object_type_union_cast($value) {
     Assert::equals($value, Type::$OBJECT->cast($value));
   }
