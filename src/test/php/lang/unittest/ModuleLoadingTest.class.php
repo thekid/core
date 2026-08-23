@@ -4,19 +4,24 @@ use lang\{Module, ClassLoader, ElementNotFoundException, XPClass};
 use test\{After, Assert, Expect, Test};
 
 class ModuleLoadingTest {
-  protected $registered= [];
+  private $registered= [];
 
   /**
    * Register a loader with the CL
    *
    * @param  lang.IClassLoader $l
-   * @return void
+   * @return lang.IClassLoader
    */
-  protected function register($l) {
+  private function register($l) {
     $this->registered[]= ClassLoader::registerLoader($l);
+    return $l;
   }
 
-  #[After]
+  /**
+   * Removes all registered loaders
+   *
+   * @return void
+   */
   public function remove() {
     foreach ($this->registered as $l) {
       ClassLoader::removeLoader($l);
@@ -92,8 +97,7 @@ class ModuleLoadingTest {
   #[Test]
   public function loaded_module() {
     try {
-      $cl= new LoaderProviding(['module.xp' => 'module xp-framework/loaded { }']);
-      $this->register($cl);
+      $cl= $this->register(new LoaderProviding(['module.xp' => 'module xp-framework/loaded { }']));
       Assert::equals(new Module('xp-framework/loaded', $cl), Module::forName('xp-framework/loaded'));
     } finally {
       $this->remove();
@@ -167,12 +171,11 @@ class ModuleLoadingTest {
   #[Test]
   public function modules_initializer_can_register_itself_upfront_without_causing_endless_recursion() {
     try {
-      $selfUpfront= new LoaderProviding(['module.xp' => 'module xp-framework/self-upfront {
+      $this->register(new LoaderProviding(['module.xp' => 'module xp-framework/self-upfront {
         public function initialize() {
           \lang\ClassLoader::registerLoader($this->classLoader(), true);
         }
-      }']);
-      $this->register($selfUpfront);
+      }']));
     } finally {
       $this->remove();
     }
