@@ -52,16 +52,18 @@ final class ClassLoader implements IClassLoader {
       } else {
         $cl= ArchiveClassLoader::instanceFor($element, false);
       }
-      if (isset(self::$delegates[$cl->instanceId()])) continue;
 
-      self::$delegates[$cl->instanceId()]= $cl;
-      if ($cl->providesResource('module.xp')) $modules[]= $cl;
+      $id= $cl->instanceId();
+      if (isset(self::$delegates[$id])) continue;
+
+      self::$delegates[$id]= $cl;
+      if ($cl->providesResource('module.xp')) $modules[$id]= $cl;
     }
 
     // Initialize modules
     \xp::$loader= new self();
-    foreach ($modules as $cl) {
-      self::$modules[$cl->instanceId()]= Module::register(self::declareModule($cl));
+    foreach ($modules as $id => $cl) {
+      self::$modules[$id]= Module::register(self::declareModule($cl));
     }
   }
   
