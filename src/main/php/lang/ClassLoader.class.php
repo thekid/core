@@ -111,7 +111,7 @@ final class ClassLoader implements IClassLoader {
   public static function registerLoader(IClassLoader $l, $before= false) {
     $id= $l->instanceId();
     if ($before) {
-      self::$delegates= array_merge([$id => $l], self::$delegates);
+      self::$delegates= [$id => $l] + self::$delegates;
     } else {
       self::$delegates[$id]= $l;
     }
