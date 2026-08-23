@@ -11,6 +11,9 @@ forward compatibility with PHP 8.6.
 
 ### Heads up!
 
+* Merged PR #373: Remove NULL handling in `Type::cast()`; nullable types
+  handle these cases
+  (@thekid)
 * Merged PR #371: Rename *is()* -> *instance()* due to `is` being reserved
   as an operator in PHP, see #368
   (@thekid)
