@@ -30,7 +30,7 @@ class Type implements Value {
         }
       }
       public function cast($value) {
-        return null === $value ? null : (array)$value;
+        return (array)$value;
       }
       public function isAssignableFrom($type): bool {
         return $type instanceof self || $type instanceof ArrayType || $type instanceof MapType;
@@ -45,7 +45,7 @@ class Type implements Value {
         throw new IllegalAccessException("Cannot instantiate an object from ".($args ? typeof($args[0])->getName() : "null"));
       }
       public function cast($value) {
-        if (null === $value || is_object($value)) return $value;
+        if (is_object($value)) return $value;
         throw new ClassCastException("Cannot cast ".typeof($value)->getName()." to the object type");
       }
       public function isAssignableFrom($type): bool {
@@ -61,7 +61,7 @@ class Type implements Value {
         throw new IllegalAccessException("Cannot instantiate a callable from ".($args ? typeof($args[0])->getName() : "null"));
       }
       public function cast($value) {
-        if (null === $value || is_callable($value)) return $value;
+        if (is_callable($value)) return $value;
         throw new ClassCastException("Cannot cast ".typeof($value)->getName()." to the callable type");
       }
       public function isAssignableFrom($type): bool {
@@ -77,7 +77,7 @@ class Type implements Value {
         throw new IllegalAccessException("Cannot instantiate an iterable from ".($args ? typeof($args[0])->getName() : "null"));
       }
       public function cast($value) {
-        if (null === $value || $value instanceof \Traversable || is_array($value)) return $value;
+        if (is_iterable($value)) return $value;
         throw new ClassCastException("Cannot cast ".typeof($value)->getName()." to the iterable type");
       }
       public function isAssignableFrom($type): bool {

@@ -97,7 +97,7 @@ class Primitive extends Type {
    * @throws  lang.ClassCastException
    */
   public function cast($value) {
-    return null === $value ? null : $this->coerce($value, function($value) {
+    return $this->coerce($value, function($value) {
       throw new ClassCastException('Cannot cast to '.$this->getName().' from '.typeof($value)->getName());
     });
   }
