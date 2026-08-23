@@ -1,7 +1,6 @@
 <?php namespace lang;
 
 use lang\archive\ArchiveClassLoader;
-use lang\reflect\Module;
 use util\Objects;
 
 /** 
@@ -149,7 +148,7 @@ final class ClassLoader implements IClassLoader {
     if (strstr($m[2], 'extends')) {
       $parent= $m[2];
     } else {
-      $parent= ' extends \lang\reflect\Module '.$m[2];
+      $parent= ' extends \lang\Module '.$m[2];
     }
 
     $dyn= DynamicClassLoader::instanceFor('modules');

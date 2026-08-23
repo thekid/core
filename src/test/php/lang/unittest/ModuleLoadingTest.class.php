@@ -1,7 +1,6 @@
 <?php namespace lang\unittest;
 
-use lang\reflect\Module;
-use lang\{ClassLoader, ElementNotFoundException, XPClass};
+use lang\{Module, ClassLoader, ElementNotFoundException, XPClass};
 use test\{After, Assert, Expect, Test};
 
 class ModuleLoadingTest {
