@@ -45,8 +45,7 @@ class Type implements Value {
         throw new IllegalAccessException("Cannot instantiate an object from ".($args ? typeof($args[0])->getName() : "null"));
       }
       public function cast($value) {
-        if (is_object($value)) return $value;
-        throw new ClassCastException("Cannot cast ".typeof($value)->getName()." to the object type");
+        return (object)$value;
       }
       public function isAssignableFrom($type): bool {
         return $type instanceof self || $type instanceof XPClass;
