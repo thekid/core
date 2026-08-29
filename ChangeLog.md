@@ -28,6 +28,7 @@ forward compatibility with PHP 8.6.
 
 ### RFCs
 
+* Merged PR #374: Move Module class to lang namespace - @thekid
 * Implemented xp-framework/rfc#338: Remove reflection from XP Core. This
   functionality is provided byin `xp-framework/reflection`. See PR #367.
   (@thekid)
