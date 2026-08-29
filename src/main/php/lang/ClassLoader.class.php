@@ -1,7 +1,6 @@
 <?php namespace lang;
 
 use lang\archive\ArchiveClassLoader;
-use lang\reflect\Module;
 use util\Objects;
 
 /** 
@@ -53,16 +52,18 @@ final class ClassLoader implements IClassLoader {
       } else {
         $cl= ArchiveClassLoader::instanceFor($element, false);
       }
-      if (isset(self::$delegates[$cl->instanceId()])) continue;
 
-      self::$delegates[$cl->instanceId()]= $cl;
-      if ($cl->providesResource('module.xp')) $modules[]= $cl;
+      $id= $cl->instanceId();
+      if (isset(self::$delegates[$id])) continue;
+
+      self::$delegates[$id]= $cl;
+      if ($cl->providesResource('module.xp')) $modules[$id]= $cl;
     }
 
     // Initialize modules
     \xp::$loader= new self();
-    foreach ($modules as $cl) {
-      self::$modules[$cl->instanceId()]= Module::register(self::declareModule($cl));
+    foreach ($modules as $id => $cl) {
+      self::$modules[$id]= Module::register(self::declareModule($cl));
     }
   }
   
@@ -110,7 +111,7 @@ final class ClassLoader implements IClassLoader {
   public static function registerLoader(IClassLoader $l, $before= false) {
     $id= $l->instanceId();
     if ($before) {
-      self::$delegates= array_merge([$id => $l], self::$delegates);
+      self::$delegates= [$id => $l] + self::$delegates;
     } else {
       self::$delegates[$id]= $l;
     }
@@ -149,7 +150,7 @@ final class ClassLoader implements IClassLoader {
     if (strstr($m[2], 'extends')) {
       $parent= $m[2];
     } else {
-      $parent= ' extends \lang\reflect\Module '.$m[2];
+      $parent= ' extends \lang\Module '.$m[2];
     }
 
     $dyn= DynamicClassLoader::instanceFor('modules');

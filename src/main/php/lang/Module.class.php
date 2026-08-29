@@ -1,6 +1,4 @@
-<?php namespace lang\reflect;
-
-use lang\{IClassLoader, ElementNotFoundException, Value};
+<?php namespace lang;
 
 /**
  * Represents a module

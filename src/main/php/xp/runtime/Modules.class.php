@@ -1,7 +1,6 @@
 <?php namespace xp\runtime;
 
-use lang\reflect\Module;
-use lang\{Environment, ElementNotFoundException, FormatException};
+use lang\{Module, Environment, ElementNotFoundException, FormatException};
 
 /** @test xp.unittest.ModulesTest */
 class Modules {

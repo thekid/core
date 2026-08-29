@@ -1,24 +1,28 @@
 <?php namespace lang\unittest;
 
-use lang\reflect\Module;
-use lang\{ClassLoader, ElementNotFoundException, XPClass};
+use lang\{Module, ClassLoader, ElementNotFoundException, XPClass};
 use test\{After, Assert, Expect, Test};
 
 class ModuleLoadingTest {
-  protected $registered= [];
+  private $registered= [];
 
   /**
    * Register a loader with the CL
    *
    * @param  lang.IClassLoader $l
-   * @return void
+   * @return lang.IClassLoader
    */
-  protected function register($l) {
+  private function register($l) {
     $this->registered[]= ClassLoader::registerLoader($l);
+    return $l;
   }
 
-  #[After]
-  public function tearDown() {
+  /**
+   * Removes all registered loaders
+   *
+   * @return void
+   */
+  public function remove() {
     foreach ($this->registered as $l) {
       ClassLoader::removeLoader($l);
     }
@@ -29,7 +33,7 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => 'module xp-framework/simple { }']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -38,7 +42,7 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => '<?php module xp-framework/tagstart { }']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -47,7 +51,7 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => '<?php module xp-framework/tagboth { } ?>']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -56,7 +60,7 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => 'module xp-framework/tagend { } ?>']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -68,7 +72,7 @@ class ModuleLoadingTest {
 
       }']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -77,7 +81,7 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => '']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -86,18 +90,17 @@ class ModuleLoadingTest {
     try {
       $this->register(new LoaderProviding(['module.xp' => 'module { }']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
   #[Test]
   public function loaded_module() {
     try {
-      $cl= new LoaderProviding(['module.xp' => 'module xp-framework/loaded { }']);
-      $this->register($cl);
+      $cl= $this->register(new LoaderProviding(['module.xp' => 'module xp-framework/loaded { }']));
       Assert::equals(new Module('xp-framework/loaded', $cl), Module::forName('xp-framework/loaded'));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -113,7 +116,7 @@ class ModuleLoadingTest {
       }']));
       Assert::equals(true, Module::forName('xp-framework/initialized')->initialized);
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -135,7 +138,7 @@ class ModuleLoadingTest {
       $this->register($tracksInit);
       Assert::equals(1, Module::forName('xp-framework/tracks-init')->initialized());
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -148,7 +151,7 @@ class ModuleLoadingTest {
       ]));
       Assert::equals($cl, new XPClass(typeof(Module::forName('xp-framework/child'))->reflect()->getParentclass()));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
@@ -161,21 +164,20 @@ class ModuleLoadingTest {
       ]));
       Assert::true(typeof(Module::forName('xp-framework/impl'))->reflect()->isSubclassOf($cl->reflect()));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 
   #[Test]
   public function modules_initializer_can_register_itself_upfront_without_causing_endless_recursion() {
     try {
-      $selfUpfront= new LoaderProviding(['module.xp' => 'module xp-framework/self-upfront {
+      $this->register(new LoaderProviding(['module.xp' => 'module xp-framework/self-upfront {
         public function initialize() {
           \lang\ClassLoader::registerLoader($this->classLoader(), true);
         }
-      }']);
-      $this->register($selfUpfront);
+      }']));
     } finally {
-      $this->tearDown();
+      $this->remove();
     }
   }
 }
